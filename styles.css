@@ -208,63 +208,10 @@ input:focus, select:focus, textarea:focus {
   .field-row { grid-template-columns: 1fr; }
 }
 
-/* Dive Site picker — text input + "+" toggle + dropdown */
-.dive-site-wrap {
-  position: relative;
-  display: flex;
-  gap: 6px;
-  align-items: stretch;
-}
-.dive-site-wrap > input {
-  flex: 1;
-  min-width: 0;
-}
-.dive-site-toggle {
-  width: 48px;
-  flex-shrink: 0;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 1.4rem;
-  font-weight: 600;
-  padding: 0;
-  min-height: var(--tap);
-  border-radius: var(--radius);
-}
-.dive-site-toggle:hover { background: var(--accent); color: white; }
-.dive-site-panel {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 6px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 6px 20px rgba(45, 143, 176, 0.22);
-  z-index: 50;
-  max-height: 60vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-.dive-site-item {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  text-align: left;
-  padding: 4px 12px;
-  font-size: 0.85rem;
-  font-weight: 400;
-  min-height: 32px;
-  color: var(--ink);
-  border-bottom: 1px solid var(--line);
-  justify-content: flex-start;
-}
-.dive-site-item:hover { background: var(--surface-2); color: var(--accent); }
+/* Site picker — "+ Add new site" affordance below the strict <select>.
+   The select is a native dropdown; this just styles the add-site row. */
 .dive-site-add-row {
-  padding: 6px;
-  border-top: 2px solid var(--line);
-  background: var(--surface-2);
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -275,7 +222,7 @@ input:focus, select:focus, textarea:focus {
   color: var(--accent-2);
   font-weight: 500;
   font-size: 0.85rem;
-  min-height: 32px;
+  min-height: 36px;
   width: 100%;
 }
 .dive-site-add:hover { background: rgba(101, 188, 208, 0.14); }

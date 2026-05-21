@@ -211,15 +211,6 @@ function addCustomSite(name) {
   return true;
 }
 
-// Returns the canonical site name (case-normalised) if `value` matches a
-// known site (default or custom), otherwise null. Used to enforce that
-// only known sites can be saved.
-function findKnownSite(value) {
-  const trimmed = (value || "").trim();
-  if (!trimmed) return null;
-  const lower = trimmed.toLowerCase();
-  return getAllDiveSites().find((s) => s.toLowerCase() === lower) || null;
-}
 
 function saveSettings() { localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }
 function loadSettings() {
@@ -258,143 +249,100 @@ function go(screen) {
 }
 
 /* =========================================================================
- *  DIVE SITE PICKER (same UX as Turtle / EMP Uploaders)
+ *  SITE PICKER — strict <select> dropdown + "+ Add new site" affordance.
+ *
+ *  Surveyors can only enter sites that are in the dropdown. To register a
+ *  new site, they must use the explicit "+ Add new site" button: it saves
+ *  the new name to device-local storage and inserts it into the dropdown.
+ *  Free-text entry is intentionally not supported, to keep the Sheet's
+ *  "site" column clean and analysable.
  * ========================================================================= */
 
-function attachDiveSitePicker(input) {
-  const wrap = document.createElement("div");
-  wrap.className = "dive-site-wrap";
-  input.parentNode.insertBefore(wrap, input);
-  wrap.appendChild(input);
+function attachDiveSitePicker(select, initialValue) {
+  if (!select || select.tagName !== "SELECT") return;
 
-  const datalistId = "dive-sites-" + Math.random().toString(36).slice(2, 8);
-  const datalist = document.createElement("datalist");
-  datalist.id = datalistId;
-  input.setAttribute("list", datalistId);
-  wrap.appendChild(datalist);
-
-  function refreshDatalist() {
-    datalist.innerHTML = "";
-    getAllDiveSites().forEach((s) => {
-      const opt = document.createElement("option");
-      opt.value = s;
-      datalist.appendChild(opt);
-    });
+  function rebuildOptions(selectedValue) {
+    // Preserve the leading placeholder option from the template and rebuild
+    // the data options below it. If the desired value isn't in the canonical
+    // list (e.g. a legacy draft from before this update), we re-insert it
+    // anyway so the surveyor sees their stored choice rather than a blank.
+    const placeholder = select.querySelector('option[value=""]');
+    select.innerHTML = "";
+    if (placeholder) select.appendChild(placeholder);
+    const sites = getAllDiveSites();
+    if (selectedValue && !sites.includes(selectedValue)) sites.push(selectedValue);
+    sites
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+      .forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        select.appendChild(opt);
+      });
+    if (selectedValue) select.value = selectedValue;
   }
-  refreshDatalist();
+  rebuildOptions(initialValue || "");
 
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "dive-site-toggle";
-  toggle.textContent = "+";
-  toggle.title = "Pick from list";
-  wrap.appendChild(toggle);
+  // "+ Add new site" affordance sits below the select inside the same label,
+  // so it stacks naturally with the form's gap spacing.
+  const host = select.closest("label") || select.parentNode;
+  const addRow = document.createElement("div");
+  addRow.className = "dive-site-add-row";
 
-  const panel = document.createElement("div");
-  panel.className = "dive-site-panel hidden";
-  wrap.appendChild(panel);
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "dive-site-add";
+  addBtn.textContent = "+ Add new site";
 
-  function setValue(val) {
-    input.value = val;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  }
+  const addForm = document.createElement("div");
+  addForm.className = "dive-site-add-form hidden";
+  const newInput = document.createElement("input");
+  newInput.type = "text";
+  newInput.maxLength = 60;
+  newInput.placeholder = "New site name";
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "primary";
+  saveBtn.textContent = "Save";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "ghost";
+  cancelBtn.textContent = "Cancel";
+  addForm.append(newInput, saveBtn, cancelBtn);
 
-  function renderPanel() {
-    panel.innerHTML = "";
-    getAllDiveSites().forEach((s) => {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "dive-site-item";
-      item.textContent = s;
-      item.addEventListener("click", () => { setValue(s); closePanel(); });
-      panel.appendChild(item);
-    });
-
-    const addRow = document.createElement("div");
-    addRow.className = "dive-site-add-row";
-
-    const addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "dive-site-add";
-    addBtn.textContent = "+ Add new site";
-
-    const addForm = document.createElement("div");
-    addForm.className = "dive-site-add-form hidden";
-    const newInput = document.createElement("input");
-    newInput.type = "text";
-    newInput.maxLength = 40;
-    newInput.placeholder = "New site name";
-    const saveBtn = document.createElement("button");
-    saveBtn.type = "button";
-    saveBtn.className = "primary";
-    saveBtn.textContent = "Save";
-    const cancelBtn = document.createElement("button");
-    cancelBtn.type = "button";
-    cancelBtn.className = "ghost";
-    cancelBtn.textContent = "Cancel";
-    addForm.append(newInput, saveBtn, cancelBtn);
-
-    addBtn.addEventListener("click", () => {
-      addBtn.classList.add("hidden");
-      addForm.classList.remove("hidden");
-      newInput.focus();
-    });
-    cancelBtn.addEventListener("click", () => {
-      addForm.classList.add("hidden");
-      addBtn.classList.remove("hidden");
-      newInput.value = "";
-    });
-    function commitNew() {
-      const name = newInput.value.trim();
-      if (!name) return;
-      const added = addCustomSite(name);
-      refreshDatalist();
-      setValue(name);
-      if (added) toast(`Added "${name}" to sites.`);
-      renderPanel();
-      closePanel();
-    }
-    saveBtn.addEventListener("click", commitNew);
-    newInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") { e.preventDefault(); commitNew(); }
-      if (e.key === "Escape") { cancelBtn.click(); }
-    });
-
-    addRow.append(addBtn, addForm);
-    panel.appendChild(addRow);
-  }
-  renderPanel();
-
-  function openPanel() { panel.classList.remove("hidden"); }
-  function closePanel() { panel.classList.add("hidden"); }
-  function togglePanel() { panel.classList.toggle("hidden"); }
-
-  toggle.addEventListener("click", (e) => { e.stopPropagation(); togglePanel(); });
-
-  const outsideHandler = (e) => { if (!wrap.contains(e.target)) closePanel(); };
-  document.addEventListener("click", outsideHandler);
-
-  // Enforce that the input value matches a known site. Validates a short
-  // moment after blur so picker clicks (which set the value asynchronously)
-  // can complete first. Any input event cancels the pending validation.
-  let blurTimer = null;
-  input.addEventListener("input", () => clearTimeout(blurTimer));
-  input.addEventListener("blur", () => {
-    clearTimeout(blurTimer);
-    blurTimer = setTimeout(() => {
-      const val = input.value.trim();
-      if (!val) return;
-      const match = findKnownSite(val);
-      if (!match) {
-        toast(`"${val}" isn't in the site list. Tap + to pick one or add a new site.`);
-        input.value = "";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-      } else if (match !== val) {
-        input.value = match; // normalise to canonical case
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-    }, 200);
+  addBtn.addEventListener("click", () => {
+    addBtn.classList.add("hidden");
+    addForm.classList.remove("hidden");
+    newInput.focus();
   });
+  cancelBtn.addEventListener("click", () => {
+    addForm.classList.add("hidden");
+    addBtn.classList.remove("hidden");
+    newInput.value = "";
+  });
+  function commitNew() {
+    const name = newInput.value.trim();
+    if (!name) return;
+    const added = addCustomSite(name);
+    rebuildOptions(name);
+    // Fire both events: 'input' for the Info screen's persist() listener,
+    // 'change' for any future code listening for canonical change events.
+    select.dispatchEvent(new Event("input", { bubbles: true }));
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    if (added) toast(`Added "${name}" to site list.`);
+    else toast(`"${name}" is already in the site list — selected.`);
+    addForm.classList.add("hidden");
+    addBtn.classList.remove("hidden");
+    newInput.value = "";
+  }
+  saveBtn.addEventListener("click", commitNew);
+  newInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); commitNew(); }
+    if (e.key === "Escape") { cancelBtn.click(); }
+  });
+
+  addRow.append(addBtn, addForm);
+  host.appendChild(addRow);
 }
 
 /* =========================================================================
@@ -500,7 +448,7 @@ function renderSetup() {
 
   if (!form.date.value) form.date.value = new Date().toISOString().slice(0, 10);
 
-  attachDiveSitePicker(form.querySelector('[name="site"]'));
+  attachDiveSitePicker(form.querySelector('[name="site"]'), existing?.metadata?.site || "");
   populateSiteArea(form.querySelector('[name="siteArea"]'), existing?.metadata?.siteArea || "");
   populateTourists(form.querySelector('[name="numberOfTouristsAtSite"]'), existing?.metadata?.numberOfTouristsAtSite || "");
 
@@ -510,24 +458,18 @@ function renderSetup() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const fd = new FormData(form);
-    const siteTyped = (fd.get("site") || "").toString().trim();
-    const siteMatched = findKnownSite(siteTyped);
     const meta = {
       surveyLeader: (fd.get("surveyLeader") || "").toString().trim(),
       uploadedBy: (fd.get("uploadedBy") || "").toString().trim(),
       numberOfSurveyors: (fd.get("numberOfSurveyors") || "").toString().trim(),
       date: (fd.get("date") || "").toString(),
-      site: siteMatched || "",
+      site: (fd.get("site") || "").toString(),
       siteArea: (fd.get("siteArea") || "").toString(),
       surveyDuration: duration ? duration.readValue() : "",
       numberOfBoatsAtSite: (fd.get("numberOfBoatsAtSite") || "").toString().trim(),
       numberOfTouristsAtSite: (fd.get("numberOfTouristsAtSite") || "").toString(),
       otherSpecies: (fd.get("otherSpecies") || "").toString().trim(),
     };
-    if (siteTyped && !siteMatched) {
-      toast(`Site "${siteTyped}" isn't in the list. Tap + to pick one or add a new site.`);
-      return;
-    }
     if (!meta.surveyLeader || !meta.uploadedBy || !meta.numberOfSurveyors || !meta.date ||
         !meta.site || !meta.siteArea || !meta.surveyDuration || meta.numberOfBoatsAtSite === "" ||
         !meta.numberOfTouristsAtSite) {
@@ -560,7 +502,7 @@ function renderInfo() {
   form.querySelector('[name="numberOfBoatsAtSite"]').value = m.numberOfBoatsAtSite || "";
   form.querySelector('[name="otherSpecies"]').value = m.otherSpecies || "";
 
-  attachDiveSitePicker(form.querySelector('[name="site"]'));
+  attachDiveSitePicker(form.querySelector('[name="site"]'), m.site || "");
   populateSiteArea(form.querySelector('[name="siteArea"]'), m.siteArea || "");
   populateTourists(form.querySelector('[name="numberOfTouristsAtSite"]'), m.numberOfTouristsAtSite || "");
 
@@ -582,8 +524,7 @@ function renderInfo() {
     state.draft.metadata.uploadedBy = (fd.get("uploadedBy") || "").toString().trim();
     state.draft.metadata.numberOfSurveyors = (fd.get("numberOfSurveyors") || "").toString().trim();
     state.draft.metadata.date = (fd.get("date") || "").toString();
-    // Only persist site if it matches a known entry — keeps invalid typing out of state.
-    state.draft.metadata.site = findKnownSite(fd.get("site") || "") || "";
+    state.draft.metadata.site = (fd.get("site") || "").toString();
     state.draft.metadata.siteArea = (fd.get("siteArea") || "").toString();
     state.draft.metadata.surveyDuration = duration ? duration.readValue() : "";
     state.draft.metadata.numberOfBoatsAtSite = (fd.get("numberOfBoatsAtSite") || "").toString().trim();
@@ -601,6 +542,7 @@ function renderInfo() {
     if (el) el.addEventListener("input", persist);
   });
   form.querySelector('[name="date"]').addEventListener("change", persist);
+  form.querySelector('[name="site"]').addEventListener("change", persist);
   form.querySelector('[name="siteArea"]').addEventListener("change", persist);
   form.querySelector('[name="numberOfTouristsAtSite"]').addEventListener("change", persist);
 }
