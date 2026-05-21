@@ -35,17 +35,23 @@ const BEHAVIOUR_OPTIONS = [
   { code: "H2", label: "Hunting Group" },
 ];
 
-// Seeded shark survey sites (alphabetical). Surveyors can add device-local
-// custom sites too via the picker's "+ Add new site" affordance.
+// Seeded shark survey sites. Surveyors can add device-local custom sites
+// via the picker's "+ Add new site" affordance. The Site input is validated
+// against this list (plus customs) — typing a name that isn't in the list
+// is rejected on blur and at submit time. The only way to enter a new
+// value is via "+ Add new site".
 const DEFAULT_DIVE_SITES = [
   "Aow Leuk",
-  "Banana Rock",
-  "Hin Wong",
+  "Chalok Bay",
+  "Freedom Beach",
+  "Hin Wong Bay",
   "June Juea",
-  "Laem Thian",
-  "Leo Beach",
   "Sai Daeng",
+  "Sai Nuan (Banana Rock)",
+  "Sai Thong (Leo Beach)",
   "Shark Bay",
+  "Tanote Bay",
+  "Tao Tong",
 ];
 
 // Site Area — same predefined list as the EMP Uploader's "Location Within".
@@ -205,6 +211,16 @@ function addCustomSite(name) {
   return true;
 }
 
+// Returns the canonical site name (case-normalised) if `value` matches a
+// known site (default or custom), otherwise null. Used to enforce that
+// only known sites can be saved.
+function findKnownSite(value) {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return null;
+  const lower = trimmed.toLowerCase();
+  return getAllDiveSites().find((s) => s.toLowerCase() === lower) || null;
+}
+
 function saveSettings() { localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings)); }
 function loadSettings() {
   const defaults = { syncUrl: DEFAULT_SYNC_URL, autoSync: true };
@@ -357,6 +373,28 @@ function attachDiveSitePicker(input) {
 
   const outsideHandler = (e) => { if (!wrap.contains(e.target)) closePanel(); };
   document.addEventListener("click", outsideHandler);
+
+  // Enforce that the input value matches a known site. Validates a short
+  // moment after blur so picker clicks (which set the value asynchronously)
+  // can complete first. Any input event cancels the pending validation.
+  let blurTimer = null;
+  input.addEventListener("input", () => clearTimeout(blurTimer));
+  input.addEventListener("blur", () => {
+    clearTimeout(blurTimer);
+    blurTimer = setTimeout(() => {
+      const val = input.value.trim();
+      if (!val) return;
+      const match = findKnownSite(val);
+      if (!match) {
+        toast(`"${val}" isn't in the site list. Tap + to pick one or add a new site.`);
+        input.value = "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      } else if (match !== val) {
+        input.value = match; // normalise to canonical case
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }, 200);
+  });
 }
 
 /* =========================================================================
@@ -472,18 +510,24 @@ function renderSetup() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const fd = new FormData(form);
+    const siteTyped = (fd.get("site") || "").toString().trim();
+    const siteMatched = findKnownSite(siteTyped);
     const meta = {
       surveyLeader: (fd.get("surveyLeader") || "").toString().trim(),
       uploadedBy: (fd.get("uploadedBy") || "").toString().trim(),
       numberOfSurveyors: (fd.get("numberOfSurveyors") || "").toString().trim(),
       date: (fd.get("date") || "").toString(),
-      site: (fd.get("site") || "").toString().trim(),
+      site: siteMatched || "",
       siteArea: (fd.get("siteArea") || "").toString(),
       surveyDuration: duration ? duration.readValue() : "",
       numberOfBoatsAtSite: (fd.get("numberOfBoatsAtSite") || "").toString().trim(),
       numberOfTouristsAtSite: (fd.get("numberOfTouristsAtSite") || "").toString(),
       otherSpecies: (fd.get("otherSpecies") || "").toString().trim(),
     };
+    if (siteTyped && !siteMatched) {
+      toast(`Site "${siteTyped}" isn't in the list. Tap + to pick one or add a new site.`);
+      return;
+    }
     if (!meta.surveyLeader || !meta.uploadedBy || !meta.numberOfSurveyors || !meta.date ||
         !meta.site || !meta.siteArea || !meta.surveyDuration || meta.numberOfBoatsAtSite === "" ||
         !meta.numberOfTouristsAtSite) {
@@ -538,7 +582,8 @@ function renderInfo() {
     state.draft.metadata.uploadedBy = (fd.get("uploadedBy") || "").toString().trim();
     state.draft.metadata.numberOfSurveyors = (fd.get("numberOfSurveyors") || "").toString().trim();
     state.draft.metadata.date = (fd.get("date") || "").toString();
-    state.draft.metadata.site = (fd.get("site") || "").toString().trim();
+    // Only persist site if it matches a known entry — keeps invalid typing out of state.
+    state.draft.metadata.site = findKnownSite(fd.get("site") || "") || "";
     state.draft.metadata.siteArea = (fd.get("siteArea") || "").toString();
     state.draft.metadata.surveyDuration = duration ? duration.readValue() : "";
     state.draft.metadata.numberOfBoatsAtSite = (fd.get("numberOfBoatsAtSite") || "").toString().trim();
