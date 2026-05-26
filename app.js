@@ -924,12 +924,15 @@ function renderReview() {
   const submitBtn = node.querySelector("#submit-all");
   const noSharks = state.draft.sharks.length === 0;
   const incompleteCount = state.draft.sharks.filter((s) => sharkMissingFields(s).length > 0).length;
-  submitBtn.disabled = state.draft.submitted || incompleteCount > 0;
+  const pairingErr = behaviourPairingError(state.draft);
+  submitBtn.disabled = state.draft.submitted || incompleteCount > 0 || !!pairingErr;
   if (state.draft.submitted) {
     submitBtn.textContent = "ALREADY SUBMITTED";
     submitBtn.title = "This draft has already been submitted. Reset to start a new survey.";
   } else if (incompleteCount > 0) {
     submitBtn.title = `${incompleteCount} shark${incompleteCount === 1 ? "" : "s"} still missing required fields. Fill them in before submitting.`;
+  } else if (pairingErr) {
+    submitBtn.title = pairingErr;
   } else if (noSharks) {
     submitBtn.title = "Submit zero-shark survey — one row with metadata and dashes in every shark column.";
   } else {
@@ -962,14 +965,18 @@ function reviewStatus() {
     };
   }
   const incomplete = state.draft.sharks.filter((s) => sharkMissingFields(s).length > 0).length;
-  if (incomplete === 0) {
-    return { kind: "complete", label: "Complete", notes: `${n} shark${n === 1 ? "" : "s"} ready to submit.` };
+  if (incomplete > 0) {
+    return {
+      kind: "partial",
+      label: "Incomplete",
+      notes: `${n} shark${n === 1 ? "" : "s"} logged · ${incomplete} with missing required fields. Fill them in on the Sharks tab before submitting.`,
+    };
   }
-  return {
-    kind: "partial",
-    label: "Incomplete",
-    notes: `${n} shark${n === 1 ? "" : "s"} logged · ${incomplete} with missing required fields. Fill them in on the Sharks tab before submitting.`,
-  };
+  const pairingErr = behaviourPairingError(state.draft);
+  if (pairingErr) {
+    return { kind: "partial", label: "Pairing Issue", notes: pairingErr };
+  }
+  return { kind: "complete", label: "Complete", notes: `${n} shark${n === 1 ? "" : "s"} ready to submit.` };
 }
 
 function sharkMissingFields(s) {
@@ -979,6 +986,28 @@ function sharkMissingFields(s) {
   if (!s.lifeStage) missing.push("life stage");
   if (!s.behaviourCode) missing.push("behaviour");
   return missing;
+}
+
+// Cross-shark validation for the Cruising Group behaviour codes:
+//   C3 = "Cruising Group With Leader" — implies a leader was observed.
+//   C4 = "Cruising Group As Leader"   — implies the followers were observed.
+// They're two sides of the same sighting, so a survey with one but not the
+// other is inconsistent. Returns an error message string or null if OK.
+function behaviourPairingError(draft) {
+  const c3 = draft.sharks
+    .map((s, i) => (s.behaviourCode === "C3" ? i + 1 : null))
+    .filter((x) => x);
+  const c4 = draft.sharks
+    .map((s, i) => (s.behaviourCode === "C4" ? i + 1 : null))
+    .filter((x) => x);
+  const list = (nums) => (nums.length === 1 ? `Shark ${nums[0]}` : `Sharks ${nums.join(", ")}`);
+  if (c3.length > 0 && c4.length === 0) {
+    return `${list(c3)} coded C3 (group with leader) — at least one shark must also be coded C4 (the leader). Add the leader or change the selection.`;
+  }
+  if (c4.length > 0 && c3.length === 0) {
+    return `${list(c4)} coded C4 (the leader) — at least one shark must also be coded C3 (the followers). Add the followers or change the selection.`;
+  }
+  return null;
 }
 
 /* =========================================================================
@@ -1081,6 +1110,11 @@ async function submitSurvey() {
     .filter((x) => x.missing.length > 0);
   if (incomplete.length > 0) {
     toast(`Shark ${incomplete[0].idx} is missing: ${incomplete[0].missing.join(", ")}. Fill all required fields before submitting.`);
+    return;
+  }
+  const pairingErr = behaviourPairingError(state.draft);
+  if (pairingErr) {
+    toast(pairingErr);
     return;
   }
 
