@@ -743,8 +743,8 @@ function buildSharkBody(shark, onUpdate, onDelete, onSave) {
   const sizeInput = document.createElement("input");
   sizeInput.type = "number";
   sizeInput.min = "0";
-  sizeInput.step = "1";
-  sizeInput.inputMode = "numeric";
+  sizeInput.step = "0.01";
+  sizeInput.inputMode = "decimal";
   sizeInput.placeholder = "Estimated Length (M)";
   sizeInput.value = shark.approxSize || "";
   sizeInput.addEventListener("focus", () => setTimeout(() => sizeInput.select(), 0));
