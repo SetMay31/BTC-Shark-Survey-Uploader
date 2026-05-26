@@ -729,26 +729,28 @@ function buildSharkBody(shark, onUpdate, onDelete, onSave) {
     return inp;
   }));
 
-  // Approx Size
-  grid.appendChild(field("Approx Size (cm) *", () => {
-    const inp = document.createElement("input");
-    inp.type = "number";
-    inp.min = "0";
-    inp.step = "1";
-    inp.inputMode = "numeric";
-    inp.placeholder = "Total length, cm";
-    inp.value = shark.approxSize || "";
-    inp.addEventListener("focus", () => setTimeout(() => inp.select(), 0));
-    inp.addEventListener("input", () => { shark.approxSize = inp.value; persist(); });
-    return inp;
-  }));
-
   body.appendChild(grid);
 
   // Life Stage — 3 cols × 2 rows
   body.appendChild(buildPillField("Life Stage *", LIFE_STAGE_OPTIONS,
     shark.lifeStage,
     (val) => { shark.lifeStage = val; persist(); }, 3));
+
+  // Approx Size — optional, sits as a full-width field below Life Stage
+  const sizeLabel = document.createElement("label");
+  const sizeSpan = document.createElement("span");
+  sizeSpan.textContent = "Approx Size (If Observed)";
+  const sizeInput = document.createElement("input");
+  sizeInput.type = "number";
+  sizeInput.min = "0";
+  sizeInput.step = "1";
+  sizeInput.inputMode = "numeric";
+  sizeInput.placeholder = "Total length, cm";
+  sizeInput.value = shark.approxSize || "";
+  sizeInput.addEventListener("focus", () => setTimeout(() => sizeInput.select(), 0));
+  sizeInput.addEventListener("input", () => { shark.approxSize = sizeInput.value; persist(); });
+  sizeLabel.append(sizeSpan, sizeInput);
+  body.appendChild(sizeLabel);
 
   // Behaviour Code — 2 cols × 4 rows
   body.appendChild(buildPillField("Behaviour Code *", BEHAVIOUR_OPTIONS,
@@ -974,7 +976,6 @@ function sharkMissingFields(s) {
   const missing = [];
   if (!s.timeSeen) missing.push("time");
   if (!s.depthObserved) missing.push("depth");
-  if (!s.approxSize) missing.push("size");
   if (!s.lifeStage) missing.push("life stage");
   if (!s.behaviourCode) missing.push("behaviour");
   return missing;
