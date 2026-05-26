@@ -745,7 +745,7 @@ function buildSharkBody(shark, onUpdate, onDelete, onSave) {
   sizeInput.min = "0";
   sizeInput.step = "1";
   sizeInput.inputMode = "numeric";
-  sizeInput.placeholder = "Total length, cm";
+  sizeInput.placeholder = "Estimated Length (M)";
   sizeInput.value = shark.approxSize || "";
   sizeInput.addEventListener("focus", () => setTimeout(() => sizeInput.select(), 0));
   sizeInput.addEventListener("input", () => { shark.approxSize = sizeInput.value; persist(); });
