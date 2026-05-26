@@ -124,6 +124,7 @@ function newDraft() {
       date: "",
       site: "",
       siteArea: "",
+      surveyStartTime: "",
       surveyDuration: "",
       numberOfBoatsAtSite: "",
       numberOfTouristsAtSite: "",
@@ -437,6 +438,7 @@ function renderSetup() {
     if (m.numberOfSurveyors) form.querySelector('[name="numberOfSurveyors"]').value = m.numberOfSurveyors;
     if (m.date) form.querySelector('[name="date"]').value = m.date;
     if (m.site) form.querySelector('[name="site"]').value = m.site;
+    if (m.surveyStartTime) form.querySelector('[name="surveyStartTime"]').value = m.surveyStartTime;
     if (m.numberOfBoatsAtSite) form.querySelector('[name="numberOfBoatsAtSite"]').value = m.numberOfBoatsAtSite;
     if (m.otherSpecies) form.querySelector('[name="otherSpecies"]').value = m.otherSpecies;
     resumeBtn.addEventListener("click", () => {
@@ -465,14 +467,15 @@ function renderSetup() {
       date: (fd.get("date") || "").toString(),
       site: (fd.get("site") || "").toString(),
       siteArea: (fd.get("siteArea") || "").toString(),
+      surveyStartTime: (fd.get("surveyStartTime") || "").toString(),
       surveyDuration: duration ? duration.readValue() : "",
       numberOfBoatsAtSite: (fd.get("numberOfBoatsAtSite") || "").toString().trim(),
       numberOfTouristsAtSite: (fd.get("numberOfTouristsAtSite") || "").toString(),
       otherSpecies: (fd.get("otherSpecies") || "").toString().trim(),
     };
     if (!meta.surveyLeader || !meta.uploadedBy || !meta.numberOfSurveyors || !meta.date ||
-        !meta.site || !meta.siteArea || !meta.surveyDuration || meta.numberOfBoatsAtSite === "" ||
-        !meta.numberOfTouristsAtSite) {
+        !meta.site || !meta.siteArea || !meta.surveyStartTime || !meta.surveyDuration ||
+        meta.numberOfBoatsAtSite === "" || !meta.numberOfTouristsAtSite) {
       toast("Fill all required metadata fields (Other Species is optional).");
       return;
     }
@@ -499,6 +502,7 @@ function renderInfo() {
   form.querySelector('[name="numberOfSurveyors"]').value = m.numberOfSurveyors || "";
   form.querySelector('[name="date"]').value = m.date || "";
   form.querySelector('[name="site"]').value = m.site || "";
+  form.querySelector('[name="surveyStartTime"]').value = m.surveyStartTime || "";
   form.querySelector('[name="numberOfBoatsAtSite"]').value = m.numberOfBoatsAtSite || "";
   form.querySelector('[name="otherSpecies"]').value = m.otherSpecies || "";
 
@@ -526,6 +530,7 @@ function renderInfo() {
     state.draft.metadata.date = (fd.get("date") || "").toString();
     state.draft.metadata.site = (fd.get("site") || "").toString();
     state.draft.metadata.siteArea = (fd.get("siteArea") || "").toString();
+    state.draft.metadata.surveyStartTime = (fd.get("surveyStartTime") || "").toString();
     state.draft.metadata.surveyDuration = duration ? duration.readValue() : "";
     state.draft.metadata.numberOfBoatsAtSite = (fd.get("numberOfBoatsAtSite") || "").toString().trim();
     state.draft.metadata.numberOfTouristsAtSite = (fd.get("numberOfTouristsAtSite") || "").toString();
@@ -544,6 +549,7 @@ function renderInfo() {
   form.querySelector('[name="date"]').addEventListener("change", persist);
   form.querySelector('[name="site"]').addEventListener("change", persist);
   form.querySelector('[name="siteArea"]').addEventListener("change", persist);
+  form.querySelector('[name="surveyStartTime"]').addEventListener("change", persist);
   form.querySelector('[name="numberOfTouristsAtSite"]').addEventListener("change", persist);
 }
 
@@ -847,6 +853,7 @@ function renderReview() {
     ["Date", meta.date],
     ["Site", meta.site],
     ["Site Area", meta.siteArea],
+    ["Survey Start Time", meta.surveyStartTime],
     ["Survey Duration", meta.surveyDuration],
     ["Number of Boats At Site", meta.numberOfBoatsAtSite],
     ["Number of Tourists At Site", meta.numberOfTouristsAtSite],
@@ -988,6 +995,7 @@ function buildSchema() {
       "date",
       "site",
       "siteArea",
+      "surveyStartTime",
       "surveyDuration",
       "numberOfBoatsAtSite",
       "numberOfTouristsAtSite",
@@ -1019,6 +1027,7 @@ function buildRows(draft) {
     date: draft.metadata.date || "",
     site: draft.metadata.site || "",
     siteArea: draft.metadata.siteArea || "",
+    surveyStartTime: draft.metadata.surveyStartTime || "",
     surveyDuration: draft.metadata.surveyDuration || "",
     numberOfBoatsAtSite: draft.metadata.numberOfBoatsAtSite || "",
     numberOfTouristsAtSite: draft.metadata.numberOfTouristsAtSite || "",

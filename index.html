@@ -64,6 +64,9 @@
             <option value="">Select…</option>
           </select>
         </label>
+        <label>Survey Start Time
+          <input name="surveyStartTime" type="time" required />
+        </label>
         <label>Survey Duration
           <div class="duration-row">
             <select name="durationHours" required>
@@ -120,6 +123,9 @@
           <select name="siteArea">
             <option value="">Select…</option>
           </select>
+        </label>
+        <label>Survey Start Time
+          <input name="surveyStartTime" type="time" />
         </label>
         <label>Survey Duration
           <div class="duration-row">
@@ -221,6 +227,8 @@
     </div>
   </template>
 
-  <script src="app.js" defer></script>
+  <!-- Version query forces a fresh app.js fetch when CACHE_VERSION bumps,
+       so the browser HTTP cache can't serve a stale bundle behind a fresh shell. -->
+  <script src="app.js?v=shk-v11" defer></script>
 </body>
 </html>

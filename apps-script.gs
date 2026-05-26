@@ -143,6 +143,7 @@ const EMBEDDED_SCHEMA = {
     "date",
     "site",
     "siteArea",
+    "surveyStartTime",
     "surveyDuration",
     "numberOfBoatsAtSite",
     "numberOfTouristsAtSite",
