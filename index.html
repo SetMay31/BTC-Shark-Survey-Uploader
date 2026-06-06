@@ -78,15 +78,18 @@
           </div>
         </label>
         <div class="field-row">
-          <label>Number of Boats At Site
-            <input name="numberOfBoatsAtSite" type="number" min="0" step="1" inputmode="numeric" required />
+          <label>Number of Large Boats At Site
+            <input name="numberOfLargeBoatsAtSite" type="number" min="0" step="1" inputmode="numeric" required />
           </label>
-          <label>Number of Tourists At Site
-            <select name="numberOfTouristsAtSite" required>
-              <option value="">Select…</option>
-            </select>
+          <label>Number of Small Boats At Site
+            <input name="numberOfSmallBoatsAtSite" type="number" min="0" step="1" inputmode="numeric" required />
           </label>
         </div>
+        <label>Number of Tourists At Site
+          <select name="numberOfTouristsAtSite" required>
+            <option value="">Select…</option>
+          </select>
+        </label>
         <label>Other Species Seen
           <textarea name="otherSpecies" rows="3" maxlength="800" placeholder="e.g. 30 x crocodile needlefish, 3 x triggerfish, 1 x blue spotted stingray, 1 x great barracuda"></textarea>
         </label>
@@ -138,15 +141,18 @@
           </div>
         </label>
         <div class="field-row">
-          <label>Number of Boats At Site
-            <input name="numberOfBoatsAtSite" type="number" min="0" step="1" inputmode="numeric" />
+          <label>Number of Large Boats At Site
+            <input name="numberOfLargeBoatsAtSite" type="number" min="0" step="1" inputmode="numeric" />
           </label>
-          <label>Number of Tourists At Site
-            <select name="numberOfTouristsAtSite">
-              <option value="">Select…</option>
-            </select>
+          <label>Number of Small Boats At Site
+            <input name="numberOfSmallBoatsAtSite" type="number" min="0" step="1" inputmode="numeric" />
           </label>
         </div>
+        <label>Number of Tourists At Site
+          <select name="numberOfTouristsAtSite">
+            <option value="">Select…</option>
+          </select>
+        </label>
         <label>Other Species Seen
           <textarea name="otherSpecies" rows="3" maxlength="800" placeholder="e.g. 30 x crocodile needlefish, 3 x triggerfish"></textarea>
         </label>
@@ -229,6 +235,6 @@
 
   <!-- Version query forces a fresh app.js fetch when CACHE_VERSION bumps,
        so the browser HTTP cache can't serve a stale bundle behind a fresh shell. -->
-  <script src="app.js?v=shk-v15" defer></script>
+  <script src="app.js?v=shk-v16" defer></script>
 </body>
 </html>

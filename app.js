@@ -126,7 +126,8 @@ function newDraft() {
       siteArea: "",
       surveyStartTime: "",
       surveyDuration: "",
-      numberOfBoatsAtSite: "",
+      numberOfLargeBoatsAtSite: "",
+      numberOfSmallBoatsAtSite: "",
       numberOfTouristsAtSite: "",
       otherSpecies: "",
     },
@@ -439,7 +440,8 @@ function renderSetup() {
     if (m.date) form.querySelector('[name="date"]').value = m.date;
     if (m.site) form.querySelector('[name="site"]').value = m.site;
     if (m.surveyStartTime) form.querySelector('[name="surveyStartTime"]').value = m.surveyStartTime;
-    if (m.numberOfBoatsAtSite) form.querySelector('[name="numberOfBoatsAtSite"]').value = m.numberOfBoatsAtSite;
+    if (m.numberOfLargeBoatsAtSite) form.querySelector('[name="numberOfLargeBoatsAtSite"]').value = m.numberOfLargeBoatsAtSite;
+    if (m.numberOfSmallBoatsAtSite) form.querySelector('[name="numberOfSmallBoatsAtSite"]').value = m.numberOfSmallBoatsAtSite;
     if (m.otherSpecies) form.querySelector('[name="otherSpecies"]').value = m.otherSpecies;
     resumeBtn.addEventListener("click", () => {
       state.draft = existing;
@@ -469,13 +471,15 @@ function renderSetup() {
       siteArea: (fd.get("siteArea") || "").toString(),
       surveyStartTime: (fd.get("surveyStartTime") || "").toString(),
       surveyDuration: duration ? duration.readValue() : "",
-      numberOfBoatsAtSite: (fd.get("numberOfBoatsAtSite") || "").toString().trim(),
+      numberOfLargeBoatsAtSite: (fd.get("numberOfLargeBoatsAtSite") || "").toString().trim(),
+      numberOfSmallBoatsAtSite: (fd.get("numberOfSmallBoatsAtSite") || "").toString().trim(),
       numberOfTouristsAtSite: (fd.get("numberOfTouristsAtSite") || "").toString(),
       otherSpecies: (fd.get("otherSpecies") || "").toString().trim(),
     };
     if (!meta.surveyLeader || !meta.uploadedBy || !meta.numberOfSurveyors || !meta.date ||
         !meta.site || !meta.siteArea || !meta.surveyStartTime || !meta.surveyDuration ||
-        meta.numberOfBoatsAtSite === "" || !meta.numberOfTouristsAtSite) {
+        meta.numberOfLargeBoatsAtSite === "" || meta.numberOfSmallBoatsAtSite === "" ||
+        !meta.numberOfTouristsAtSite) {
       toast("Fill all required metadata fields (Other Species is optional).");
       return;
     }
@@ -503,7 +507,8 @@ function renderInfo() {
   form.querySelector('[name="date"]').value = m.date || "";
   form.querySelector('[name="site"]').value = m.site || "";
   form.querySelector('[name="surveyStartTime"]').value = m.surveyStartTime || "";
-  form.querySelector('[name="numberOfBoatsAtSite"]').value = m.numberOfBoatsAtSite || "";
+  form.querySelector('[name="numberOfLargeBoatsAtSite"]').value = m.numberOfLargeBoatsAtSite || "";
+  form.querySelector('[name="numberOfSmallBoatsAtSite"]').value = m.numberOfSmallBoatsAtSite || "";
   form.querySelector('[name="otherSpecies"]').value = m.otherSpecies || "";
 
   attachDiveSitePicker(form.querySelector('[name="site"]'), m.site || "");
@@ -532,7 +537,8 @@ function renderInfo() {
     state.draft.metadata.siteArea = (fd.get("siteArea") || "").toString();
     state.draft.metadata.surveyStartTime = (fd.get("surveyStartTime") || "").toString();
     state.draft.metadata.surveyDuration = duration ? duration.readValue() : "";
-    state.draft.metadata.numberOfBoatsAtSite = (fd.get("numberOfBoatsAtSite") || "").toString().trim();
+    state.draft.metadata.numberOfLargeBoatsAtSite = (fd.get("numberOfLargeBoatsAtSite") || "").toString().trim();
+    state.draft.metadata.numberOfSmallBoatsAtSite = (fd.get("numberOfSmallBoatsAtSite") || "").toString().trim();
     state.draft.metadata.numberOfTouristsAtSite = (fd.get("numberOfTouristsAtSite") || "").toString();
     state.draft.metadata.otherSpecies = (fd.get("otherSpecies") || "").toString().trim();
     saveDraft();
@@ -542,7 +548,7 @@ function renderInfo() {
   const duration = attachDurationPicker(form, persist);
   if (duration) duration.setValueFromStored(m.surveyDuration || "");
 
-  ["surveyLeader", "uploadedBy", "numberOfSurveyors", "site", "numberOfBoatsAtSite", "otherSpecies"].forEach((n) => {
+  ["surveyLeader", "uploadedBy", "numberOfSurveyors", "site", "numberOfLargeBoatsAtSite", "numberOfSmallBoatsAtSite", "otherSpecies"].forEach((n) => {
     const el = form.querySelector(`[name="${n}"]`);
     if (el) el.addEventListener("input", persist);
   });
@@ -857,7 +863,8 @@ function renderReview() {
     ["Site Area", meta.siteArea],
     ["Survey Start Time", meta.surveyStartTime],
     ["Survey Duration", meta.surveyDuration],
-    ["Number of Boats At Site", meta.numberOfBoatsAtSite],
+    ["Number of Large Boats At Site", meta.numberOfLargeBoatsAtSite],
+    ["Number of Small Boats At Site", meta.numberOfSmallBoatsAtSite],
     ["Number of Tourists At Site", meta.numberOfTouristsAtSite],
     ["Number of Sharks Seen", String(state.draft.sharks.length)],
     ["Other Species", meta.otherSpecies],
@@ -1027,7 +1034,8 @@ function buildSchema() {
       "siteArea",
       "surveyStartTime",
       "surveyDuration",
-      "numberOfBoatsAtSite",
+      "numberOfLargeBoatsAtSite",
+      "numberOfSmallBoatsAtSite",
       "numberOfTouristsAtSite",
       "otherSpecies",
       "numberOfSharksSeen",
@@ -1059,7 +1067,8 @@ function buildRows(draft) {
     siteArea: draft.metadata.siteArea || "",
     surveyStartTime: draft.metadata.surveyStartTime || "",
     surveyDuration: draft.metadata.surveyDuration || "",
-    numberOfBoatsAtSite: draft.metadata.numberOfBoatsAtSite || "",
+    numberOfLargeBoatsAtSite: draft.metadata.numberOfLargeBoatsAtSite || "",
+    numberOfSmallBoatsAtSite: draft.metadata.numberOfSmallBoatsAtSite || "",
     numberOfTouristsAtSite: draft.metadata.numberOfTouristsAtSite || "",
     otherSpecies: draft.metadata.otherSpecies || "",
     numberOfSharksSeen: numSharks,

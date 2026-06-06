@@ -2,7 +2,7 @@
 // Caches the app shell so it works fully offline.
 // Bump CACHE_VERSION whenever app files change so clients pick up updates.
 
-const CACHE_VERSION = "shk-v15";
+const CACHE_VERSION = "shk-v16";
 const SHELL = [
   "./",
   "./index.html",
