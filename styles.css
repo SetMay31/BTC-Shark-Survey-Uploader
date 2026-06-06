@@ -198,7 +198,7 @@ input:focus, select:focus, textarea:focus {
 }
 .duration-row select { min-height: var(--tap); }
 
-/* Two-up field row — used for Boats + Tourists side-by-side. Stacks on narrow screens. */
+/* Two-up field row — used for Boats side-by-side. Stacks on narrow screens. */
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -206,6 +206,15 @@ input:focus, select:focus, textarea:focus {
 }
 @media (max-width: 480px) {
   .field-row { grid-template-columns: 1fr; }
+}
+
+/* Small italic hint under a field label (e.g. "e.g. Snorkel Boat" below
+   the Large Boats title). Italic + smaller + muted keeps it visually subordinate. */
+.field-hint {
+  margin-top: -4px;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.78rem;
 }
 
 /* Site picker — "+ Add new site" affordance below the strict <select>.
