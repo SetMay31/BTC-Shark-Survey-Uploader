@@ -11,7 +11,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Version query forces a fresh styles.css fetch on each CACHE_VERSION bump.
+       Same trick as the script tag below. -->
+  <link rel="stylesheet" href="styles.css?v=shk-v17" />
 </head>
 <body>
   <header class="topbar">
@@ -52,7 +54,11 @@
           <input name="numberOfSurveyors" type="number" min="1" step="1" inputmode="numeric" required />
         </label>
         <label>Date
-          <input name="date" type="date" required />
+          <div class="date-row">
+            <input name="dateDay" type="text" inputmode="numeric" maxlength="2" placeholder="DD" pattern="[0-9]{1,2}" required />
+            <input name="dateMonth" type="text" inputmode="numeric" maxlength="2" placeholder="MM" pattern="[0-9]{1,2}" required />
+            <input name="dateYear" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" pattern="[0-9]{4}" required />
+          </div>
         </label>
         <label>Site
           <select name="site" required>
@@ -115,7 +121,11 @@
           <input name="numberOfSurveyors" type="number" min="1" step="1" inputmode="numeric" />
         </label>
         <label>Date
-          <input name="date" type="date" />
+          <div class="date-row">
+            <input name="dateDay" type="text" inputmode="numeric" maxlength="2" placeholder="DD" pattern="[0-9]{1,2}" />
+            <input name="dateMonth" type="text" inputmode="numeric" maxlength="2" placeholder="MM" pattern="[0-9]{1,2}" />
+            <input name="dateYear" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" pattern="[0-9]{4}" />
+          </div>
         </label>
         <label>Site
           <select name="site">
@@ -235,6 +245,6 @@
 
   <!-- Version query forces a fresh app.js fetch when CACHE_VERSION bumps,
        so the browser HTTP cache can't serve a stale bundle behind a fresh shell. -->
-  <script src="app.js?v=shk-v16" defer></script>
+  <script src="app.js?v=shk-v17" defer></script>
 </body>
 </html>
