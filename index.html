@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" />
   <!-- Version query forces a fresh styles.css fetch on each CACHE_VERSION bump.
        Same trick as the script tag below. -->
-  <link rel="stylesheet" href="styles.css?v=shk-v18" />
+  <link rel="stylesheet" href="styles.css?v=shk-v19" />
 </head>
 <body>
   <header class="topbar">
@@ -54,11 +54,7 @@
           <input name="numberOfSurveyors" type="number" min="1" step="1" inputmode="numeric" required />
         </label>
         <label>Date
-          <div class="date-row">
-            <input name="dateDay" type="text" inputmode="numeric" maxlength="2" placeholder="DD" pattern="[0-9]{1,2}" required />
-            <input name="dateMonth" type="text" inputmode="numeric" maxlength="2" placeholder="MM" pattern="[0-9]{1,2}" required />
-            <input name="dateYear" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" pattern="[0-9]{4}" required />
-          </div>
+          <input name="date" type="date" required />
         </label>
         <label>Site
           <select name="site" required>
@@ -121,11 +117,7 @@
           <input name="numberOfSurveyors" type="number" min="1" step="1" inputmode="numeric" />
         </label>
         <label>Date
-          <div class="date-row">
-            <input name="dateDay" type="text" inputmode="numeric" maxlength="2" placeholder="DD" pattern="[0-9]{1,2}" />
-            <input name="dateMonth" type="text" inputmode="numeric" maxlength="2" placeholder="MM" pattern="[0-9]{1,2}" />
-            <input name="dateYear" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" pattern="[0-9]{4}" />
-          </div>
+          <input name="date" type="date" />
         </label>
         <label>Site
           <select name="site">
@@ -245,6 +237,6 @@
 
   <!-- Version query forces a fresh app.js fetch when CACHE_VERSION bumps,
        so the browser HTTP cache can't serve a stale bundle behind a fresh shell. -->
-  <script src="app.js?v=shk-v18" defer></script>
+  <script src="app.js?v=shk-v19" defer></script>
 </body>
 </html>

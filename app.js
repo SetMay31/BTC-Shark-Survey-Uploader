@@ -373,61 +373,6 @@ function populateTourists(select, currentValue) {
 }
 
 /* =========================================================================
- *  DATE PICKER — three text inputs (DD / MM / YYYY).
- *  Canonical storage is the "YYYY-MM-DD" ISO string the rest of the app
- *  already expects. The three inputs are pure UI; they auto-pad single
- *  digits to two on blur and reject obviously invalid combos.
- * ========================================================================= */
-
-function attachDatePicker(scope, onChange) {
-  const dEl = scope.querySelector('[name="dateDay"]');
-  const mEl = scope.querySelector('[name="dateMonth"]');
-  const yEl = scope.querySelector('[name="dateYear"]');
-  if (!dEl || !mEl || !yEl) return null;
-
-  function setValueFromStored(stored) {
-    if (!stored || !/^\d{4}-\d{2}-\d{2}$/.test(stored)) {
-      dEl.value = "";
-      mEl.value = "";
-      yEl.value = "";
-      return;
-    }
-    const [y, m, d] = stored.split("-");
-    dEl.value = d;
-    mEl.value = m;
-    yEl.value = y;
-  }
-
-  function readValue() {
-    const d = parseInt(dEl.value, 10);
-    const m = parseInt(mEl.value, 10);
-    const y = parseInt(yEl.value, 10);
-    if (!isFinite(d) || !isFinite(m) || !isFinite(y)) return "";
-    if (d < 1 || d > 31 || m < 1 || m > 12 || y < 2000 || y > 2099) return "";
-    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-  }
-
-  // Auto-pad single digits to two on blur for visual consistency.
-  [dEl, mEl].forEach((el) => {
-    el.addEventListener("blur", () => {
-      const v = el.value.trim();
-      if (v && /^\d{1}$/.test(v)) {
-        el.value = v.padStart(2, "0");
-        el.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-    });
-  });
-
-  if (typeof onChange === "function") {
-    dEl.addEventListener("input", onChange);
-    mEl.addEventListener("input", onChange);
-    yEl.addEventListener("input", onChange);
-  }
-
-  return { setValueFromStored, readValue, dEl, mEl, yEl };
-}
-
-/* =========================================================================
  *  DURATION DROPDOWNS (Hours + Minutes)
  *  Canonical storage is the "HH:MM" string. The two selects are pure UI.
  * ========================================================================= */
@@ -492,6 +437,7 @@ function renderSetup() {
     if (m.surveyLeader) form.querySelector('[name="surveyLeader"]').value = m.surveyLeader;
     if (m.uploadedBy) form.querySelector('[name="uploadedBy"]').value = m.uploadedBy;
     if (m.numberOfSurveyors) form.querySelector('[name="numberOfSurveyors"]').value = m.numberOfSurveyors;
+    if (m.date) form.querySelector('[name="date"]').value = m.date;
     if (m.site) form.querySelector('[name="site"]').value = m.site;
     if (m.surveyStartTime) form.querySelector('[name="surveyStartTime"]').value = m.surveyStartTime;
     if (m.numberOfLargeBoatsAtSite) form.querySelector('[name="numberOfLargeBoatsAtSite"]').value = m.numberOfLargeBoatsAtSite;
@@ -504,14 +450,11 @@ function renderSetup() {
     });
   }
 
+  if (!form.date.value) form.date.value = new Date().toISOString().slice(0, 10);
+
   attachDiveSitePicker(form.querySelector('[name="site"]'), existing?.metadata?.site || "");
   populateSiteArea(form.querySelector('[name="siteArea"]'), existing?.metadata?.siteArea || "");
   populateTourists(form.querySelector('[name="numberOfTouristsAtSite"]'), existing?.metadata?.numberOfTouristsAtSite || "");
-
-  // Date: prefill with the existing draft's date or today's date if blank.
-  const datePicker = attachDatePicker(form);
-  const initialDate = existing?.metadata?.date || new Date().toISOString().slice(0, 10);
-  if (datePicker) datePicker.setValueFromStored(initialDate);
 
   const duration = attachDurationPicker(form);
   if (duration && existing) duration.setValueFromStored(existing.metadata?.surveyDuration || "");
@@ -523,7 +466,7 @@ function renderSetup() {
       surveyLeader: (fd.get("surveyLeader") || "").toString().trim(),
       uploadedBy: (fd.get("uploadedBy") || "").toString().trim(),
       numberOfSurveyors: (fd.get("numberOfSurveyors") || "").toString().trim(),
-      date: datePicker ? datePicker.readValue() : "",
+      date: (fd.get("date") || "").toString(),
       site: (fd.get("site") || "").toString(),
       siteArea: (fd.get("siteArea") || "").toString(),
       surveyStartTime: (fd.get("surveyStartTime") || "").toString(),
@@ -561,6 +504,7 @@ function renderInfo() {
   form.querySelector('[name="surveyLeader"]').value = m.surveyLeader || "";
   form.querySelector('[name="uploadedBy"]').value = m.uploadedBy || "";
   form.querySelector('[name="numberOfSurveyors"]').value = m.numberOfSurveyors || "";
+  form.querySelector('[name="date"]').value = m.date || "";
   form.querySelector('[name="site"]').value = m.site || "";
   form.querySelector('[name="surveyStartTime"]').value = m.surveyStartTime || "";
   form.querySelector('[name="numberOfLargeBoatsAtSite"]').value = m.numberOfLargeBoatsAtSite || "";
@@ -588,7 +532,7 @@ function renderInfo() {
     state.draft.metadata.surveyLeader = (fd.get("surveyLeader") || "").toString().trim();
     state.draft.metadata.uploadedBy = (fd.get("uploadedBy") || "").toString().trim();
     state.draft.metadata.numberOfSurveyors = (fd.get("numberOfSurveyors") || "").toString().trim();
-    state.draft.metadata.date = datePicker ? datePicker.readValue() : "";
+    state.draft.metadata.date = (fd.get("date") || "").toString();
     state.draft.metadata.site = (fd.get("site") || "").toString();
     state.draft.metadata.siteArea = (fd.get("siteArea") || "").toString();
     state.draft.metadata.surveyStartTime = (fd.get("surveyStartTime") || "").toString();
@@ -604,13 +548,11 @@ function renderInfo() {
   const duration = attachDurationPicker(form, persist);
   if (duration) duration.setValueFromStored(m.surveyDuration || "");
 
-  const datePicker = attachDatePicker(form, persist);
-  if (datePicker) datePicker.setValueFromStored(m.date || "");
-
   ["surveyLeader", "uploadedBy", "numberOfSurveyors", "site", "numberOfLargeBoatsAtSite", "numberOfSmallBoatsAtSite", "otherSpecies"].forEach((n) => {
     const el = form.querySelector(`[name="${n}"]`);
     if (el) el.addEventListener("input", persist);
   });
+  form.querySelector('[name="date"]').addEventListener("change", persist);
   form.querySelector('[name="site"]').addEventListener("change", persist);
   form.querySelector('[name="siteArea"]').addEventListener("change", persist);
   form.querySelector('[name="surveyStartTime"]').addEventListener("change", persist);

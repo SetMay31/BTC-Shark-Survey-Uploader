@@ -198,19 +198,6 @@ input:focus, select:focus, textarea:focus {
 }
 .duration-row select { min-height: var(--tap); }
 
-/* Date — three side-by-side text inputs (DD / MM / YYYY). Year column
-   slightly wider so 4 digits fit comfortably. */
-.date-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.4fr;
-  gap: 10px;
-}
-.date-row input {
-  min-height: var(--tap);
-  text-align: center;
-  letter-spacing: 0.05em;
-}
-
 /* Two-up field row — used for Boats + Tourists side-by-side. Stacks on narrow screens. */
 .field-row {
   display: grid;
