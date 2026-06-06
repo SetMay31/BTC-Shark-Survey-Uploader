@@ -1087,7 +1087,9 @@ function buildSchema() {
       "surveyLeader",
       "uploadedBy",
       "numberOfSurveyors",
-      "date",
+      "dateDay",
+      "dateMonth",
+      "dateYear",
       "site",
       "siteArea",
       "surveyStartTime",
@@ -1111,16 +1113,29 @@ function buildSchema() {
   };
 }
 
+// Splits a canonical "YYYY-MM-DD" string into the three output columns.
+// Empty/invalid input → empty strings, matching the rest of the row contract.
+function splitDate(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    return { dateDay: "", dateMonth: "", dateYear: "" };
+  }
+  const [year, month, day] = iso.split("-");
+  return { dateDay: day, dateMonth: month, dateYear: year };
+}
+
 function buildRows(draft) {
   const submittedAt = new Date().toISOString();
   const numSharks = draft.sharks.length;
+  const dateParts = splitDate(draft.metadata.date || "");
   const baseMeta = {
     surveyId: draft.id,
     submittedAt,
     surveyLeader: draft.metadata.surveyLeader || "",
     uploadedBy: draft.metadata.uploadedBy || "",
     numberOfSurveyors: draft.metadata.numberOfSurveyors || "",
-    date: draft.metadata.date || "",
+    dateDay: dateParts.dateDay,
+    dateMonth: dateParts.dateMonth,
+    dateYear: dateParts.dateYear,
     site: draft.metadata.site || "",
     siteArea: draft.metadata.siteArea || "",
     surveyStartTime: draft.metadata.surveyStartTime || "",
